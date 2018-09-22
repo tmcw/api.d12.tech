@@ -13,7 +13,6 @@
     "url": "git+https://github.com/Rich-Harris/packd.git"
   },
   "keywords": [
-    "browserify",
     "bundler",
     "npm"
   ],
@@ -24,7 +23,6 @@
   },
   "homepage": "https://github.com/Rich-Harris/packd#readme",
   "dependencies": {
-    "browserify": "^14.1.0",
     "compression": "^1.7.0",
     "etag": "^1.8.0",
     "express": "^4.15.2",
@@ -46,7 +44,7 @@
     "uglify-js": "^3.0.25"
   },
   "devDependencies": {
-    "eslint": "^4.3.0"
+    "prettier": "^1.14.3"
   },
   "now": {
     "alias": "packd",
