@@ -89,7 +89,7 @@ function sanitizePkg(cwd) {
   );
 }
 
-function installDependencies(cwd) {
+async function installDependencies(cwd) {
   const pkg = require(`${cwd}/package.json`);
 
   const envVariables = npmInstallEnvVars.join(" ");
@@ -97,21 +97,20 @@ function installDependencies(cwd) {
 
   info(`[${pkg.name}] running ${installCommand}`);
 
-  return exec(installCommand, cwd, pkg).then(() => {
-    if (!pkg.peerDependencies) return;
+  await exec(installCommand, cwd, pkg);
+  if (!pkg.peerDependencies) return;
 
-    return Object.keys(pkg.peerDependencies).reduce((promise, name) => {
-      return promise.then(() => {
-        info(`[${pkg.name}] installing peer dependency ${name}`);
-        const version = pkg.peerDependencies[name];
-        return exec(
-          `${root}/node_modules/.bin/npm install "${name}@${version}"`,
-          cwd,
-          pkg
-        );
-      });
-    }, Promise.resolve());
-  });
+  return Object.keys(pkg.peerDependencies).reduce((promise, name) => {
+    return promise.then(() => {
+      info(`[${pkg.name}] installing peer dependency ${name}`);
+      const version = pkg.peerDependencies[name];
+      return exec(
+        `${root}/node_modules/.bin/npm install "${name}@${version}"`,
+        cwd,
+        pkg
+      );
+    });
+  }, Promise.resolve());
 }
 
 function bundle(cwd, deep, query) {
@@ -130,10 +129,6 @@ function bundle(cwd, deep, query) {
         )
       );
 
-  const code = sander.readFileSync(entry, { encoding: "utf-8" });
-
-  // TODO: https://github.com/component/is-module/issues/3
-  info(`[${pkg.name}] ES2015 module found, using Rollup`);
   return d11n(path.resolve(cwd, entry));
 }
 

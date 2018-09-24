@@ -1,140 +1,143 @@
-const fs = require("fs");
-const readline = require("readline");
-const express = require("express");
-const prettyBytes = require("pretty-bytes");
-const favicon = require("serve-favicon");
-const pkgInfo = require("../package.json");
-const padRight = require("./utils/padRight.js");
-const servePackage = require("./serve-package.js");
+const { fork } = require("child_process");
+const sander = require("sander");
+const semver = require("semver");
+const url = require("url");
+const stringify = require("querystring").stringify;
+const get = require("./utils/get.js");
+const findVersion = require("./utils/findVersion.js");
 const cache = require("./cache.js");
+const crypto = require("crypto");
 
-const { debugEndpoints, root, tmpdir } = require("../config.js");
+const { sendBadRequest, sendError } = require("./utils/responses.js");
+const { root, registry, additionalBundleResHeaders } = require("../config.js");
 
-const app = express();
-const port = process.env.PORT || 9000;
+module.exports = async function servePackage(req) {
+  if (req.method !== "GET") return next();
 
-app.use(favicon(`${root}/public/favicon.ico`));
+  const { path } = url.parse(req.url);
 
-if (debugEndpoints === true) {
-  app.get("/_log", (req, res) => {
-    const filter = req.query.filter;
-    if (filter) {
-      const rl = readline.createInterface({
-        input: fs.createReadStream(`${tmpdir}/log`)
+  if (path === "/favicon.ico") return;
+
+  const match = /^\/(?:@([^\/]+)\/)?([^@\/]+)(?:@(.+?))?(?:\/(.+?))?(?:\?(.+))?$/.exec(
+    req.url
+  );
+
+  if (!match) {
+    // TODO make this prettier
+    throw new Error("Invalid module ID");
+  }
+
+  const user = match[1];
+  const id = match[2];
+  const tag = match[3] || "latest";
+  const deep = match[4];
+  const queryString = match[5];
+
+  const qualified = user ? `@${user}/${id}` : id;
+  const query = (queryString || "").split("&").reduce((query, pair) => {
+    if (!pair) return query;
+
+    const [key, value] = pair.split("=");
+    query[key] = value || true;
+    return query;
+  }, {});
+
+  const meta = JSON.parse(
+    await get(
+      `${registry}/${encodeURIComponent(qualified).replace("%40", "@")}`
+    )
+  );
+  if (!meta.versions) {
+    console.error(`[${qualified}] invalid module`);
+    throw new Error("invalid module");
+  }
+
+  const version = findVersion(meta, tag);
+
+  if (!semver.valid(version)) {
+    console.error(`[${qualified}] invalid tag`);
+    throw new Error("invalid tag");
+  }
+
+  if (version !== tag) {
+    let url = `/${meta.name}@${version}`;
+    if (deep) url += `/${deep}`;
+    url += "?" + stringify(query);
+    res.redirect(302, url);
+    return;
+  }
+
+  return fetchBundle(meta, tag, deep, query);
+};
+
+const inProgress = {};
+
+async function fetchBundle(pkg, version, deep, query) {
+  let hash = `${pkg.name}@${version}`;
+  if (deep) hash += `_${deep.replace(/\//g, "_")}`;
+  hash += "?" + stringify(query);
+
+  console.info(`[${pkg.name}] requested package`);
+
+  hash = crypto
+    .createHash("sha1")
+    .update(hash)
+    .digest("hex");
+
+  if (cache.has(hash)) {
+    console.info(`[${pkg.name}] is cached`);
+    return Promise.resolve(cache.get(hash));
+  }
+
+  if (inProgress[hash]) {
+    console.info(`[${pkg.name}] request was already in progress`);
+  } else {
+    console.info(`[${pkg.name}] is not cached`);
+
+    inProgress[hash] = createBundle(hash, pkg, version, deep, query)
+      .then(
+        result => {
+          cache.set(hash, result);
+          return result;
+        },
+        err => {
+          inProgress[hash] = null;
+          throw err;
+        }
+      )
+      .then(zipped => {
+        inProgress[hash] = null;
+        return zipped;
       });
+  }
 
-      const pattern = new RegExp(`^packd \\w+ \\[${req.query.filter}\\]`);
-
-      rl.on("line", line => {
-        if (pattern.test(line)) res.write(line + "\n");
-      });
-
-      rl.on("close", () => {
-        res.end();
-      });
-    } else {
-      res.sendFile(`${tmpdir}/log`);
-    }
-  });
-
-  app.get("/_cache", (req, res) => {
-    res.status(200);
-    res.set({
-      "Content-Type": "text/plain"
-    });
-
-    res.write(`Total cached bundles: ${prettyBytes(cache.length)}\n`);
-
-    const table = [];
-    let maxKey = 7; // 'package'.length
-    let maxSize = 4; // 'size'.length
-
-    cache.forEach((value, pkg) => {
-      const size = value.length;
-      const sizeLabel = prettyBytes(size);
-
-      table.push({ pkg, size, sizeLabel });
-
-      maxKey = Math.max(maxKey, pkg.length);
-      maxSize = Math.max(maxSize, sizeLabel.length);
-    });
-
-    if (req.query.sort === "size") {
-      table.sort((a, b) => b.size - a.size);
-    }
-
-    const separator = padRight("", maxKey + maxSize + 5, "─");
-
-    res.write(`┌${separator}┐\n`);
-    res.write(
-      `│ ${padRight("package", maxKey)} │ ${padRight("size", maxSize)} │\n`
-    );
-    res.write(`├${separator}┤\n`);
-
-    table.forEach(row => {
-      res.write(
-        `│ ${padRight(row.pkg, maxKey)} │ ${padRight(
-          row.sizeLabel,
-          maxSize
-        )} │\n`
-      );
-    });
-    res.write(`└${separator}┘\n`);
-
-    res.end();
-  });
+  return inProgress[hash];
 }
 
-// log requests
-app.use((req, res, next) => {
-  const remoteAddr = (function() {
-    if (req.ip) return req.ip;
-    const sock = req.socket;
-    if (sock.socket) return sock.socket.remoteAddress;
-    if (sock.remoteAddress) return sock.remoteAddress;
-    return " - ";
-  })();
-  const date = new Date().toUTCString();
-  const url = req.originalUrl || req.url;
-  const httpVersion = req.httpVersionMajor + "." + req.httpVersionMinor;
+function createBundle(hash, pkg, version, deep, query) {
+  return new Promise((fulfil, reject) => {
+    const child = fork("server/child-processes/create-bundle.js");
 
-  console.info(
-    `${remoteAddr} - - [${date}] "${req.method} ${url} HTTP/${httpVersion}"`
-  );
-  next();
-});
+    child.on("message", message => {
+      if (message === "ready") {
+        child.send({
+          type: "start",
+          params: { hash, pkg, version, deep, query }
+        });
+      }
 
-// redirect /bundle/foo to /foo
-app.get("/bundle/:id", (req, res) => {
-  const queryString = Object.keys(req.query)
-    .map(key => `${key}=${encodeURIComponent(req.query[key])}`)
-    .join("&");
+      if (message.type === "info") {
+        console.info(message.message);
+      } else if (message.type === "error") {
+        const error = new Error(message.message);
+        error.stack = message.stack;
 
-  let url = req.url.replace("/bundle", "");
-  if (queryString) url += `?${queryString}`;
-
-  res.redirect(301, url);
-});
-
-app.use(
-  express.static(`${root}/public`, {
-    maxAge: 600
-  })
-);
-
-app.get("/", (req, res) => {
-  res.status(200);
-  const index = fs
-    .readFileSync(`${root}/server/templates/index.html`, "utf-8")
-    .replace("__VERSION__", pkgInfo.version);
-
-  res.end(index);
-});
-
-app.use(servePackage);
-
-app.listen(port, () => {
-  console.log(`started at ${new Date().toUTCString()}`);
-  console.log("listening on localhost:" + port);
-  if (process.send) process.send("start");
-});
+        reject(error);
+        child.kill();
+      } else if (message.type === "result") {
+        fulfil(message.code);
+        child.kill();
+      }
+    });
+  });
+}

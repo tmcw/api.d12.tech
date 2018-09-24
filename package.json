@@ -3,7 +3,7 @@
   "version": "2.6.8",
   "description": "Simple alternative to browserify-cdn",
   "scripts": {
-    "start": "node server",
+    "start": "micro server",
     "deploy": "now && now alias",
     "test": "node test/test.js",
     "postpublish": "npm run deploy"
@@ -27,16 +27,14 @@
   "homepage": "https://github.com/Rich-Harris/packd#readme",
   "dependencies": {
     "d11n": "0.0.1-0",
-    "etag": "^1.8.0",
-    "express": "^4.15.2",
     "got": "^9.2.2",
     "lru-cache": "^4.0.2",
+    "micro": "^9.3.3",
     "npm": "^5.3.0",
-    "pretty-bytes": "^4.0.2",
     "sander": "^0.6.0",
-    "semver": "^5.3.0",
+    "semver": "^5.5.1",
     "serve-favicon": "^2.4.2",
-    "tar": "^3.2.1"
+    "tar": "^4.4.6"
   },
   "devDependencies": {
     "prettier": "^1.14.3"
