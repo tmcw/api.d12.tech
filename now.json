@@ -1,0 +1,10 @@
+{
+  "name": "bookish",
+  "alias": "d11n.tech",
+  "scale": {
+    "sfo1": {
+      "min": 1,
+      "max": "auto"
+    }
+  }
+}

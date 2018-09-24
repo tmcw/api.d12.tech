@@ -3,11 +3,10 @@ const sander = require("sander");
 const child_process = require("child_process");
 const tar = require("tar");
 const request = require("request");
-const browserify = require("browserify");
 const rollup = require("rollup");
 const resolve = require("rollup-plugin-node-resolve");
 const UglifyJS = require("uglify-js");
-const isModule = require("is-module");
+const d11n = require("d11n");
 const makeLegalIdentifier = require("../utils/makeLegalIdentifier");
 
 const { npmInstallEnvVars, root, tmpdir } = require("../../config.js");
@@ -30,19 +29,11 @@ async function createBundle({ hash, pkg, version, deep, query }) {
     await sanitizePkg(cwd);
     await installDependencies(cwd);
 
-    const code = await bundle(cwd, deep, query);
-
-    info(`[${pkg.name}] minifying`);
-
-    const result = UglifyJS.minify(code);
-
-    if (result.error) {
-      info(`[${pkg.name}] minification failed: ${result.error.message}`);
-    }
+    const docs = await bundle(cwd, deep, query);
 
     process.send({
       type: "result",
-      code: result.error ? code : result.code
+      code: JSON.stringify(Array.from(docs.entries()))
     });
   } catch (err) {
     process.send({
@@ -136,18 +127,19 @@ function bundle(cwd, deep, query) {
     : findEntry(
         path.resolve(
           cwd,
-          pkg.module || pkg["jsnext:main"] || pkg.main || "index.js"
+          pkg.source ||
+            pkg.module ||
+            pkg["jsnext:main"] ||
+            pkg.main ||
+            "index.js"
         )
       );
 
   const code = sander.readFileSync(entry, { encoding: "utf-8" });
 
-  if (isModule(code)) {
-    info(`[${pkg.name}] ES2015 module found, using Rollup`);
-    return bundleWithRollup(cwd, pkg, entry, moduleName);
-  } else {
-    // TODO
-  }
+  // TODO: https://github.com/component/is-module/issues/3
+  info(`[${pkg.name}] ES2015 module found, using Rollup`);
+  return d11n(path.resolve(cwd, entry));
 }
 
 function findEntry(file) {
@@ -157,41 +149,6 @@ function findEntry(file) {
     return file;
   } catch (err) {
     return `${file}.js`;
-  }
-}
-
-async function bundleWithRollup(cwd, pkg, moduleEntry, moduleName) {
-  const bundle = await rollup.rollup({
-    entry: path.resolve(cwd, moduleEntry),
-    plugins: [
-      resolve({ module: true, jsnext: true, main: false, modulesOnly: true })
-    ]
-  });
-
-  info(`[${pkg.name}] bundled using Rollup`);
-
-  if (bundle.imports.length > 0) {
-    info(
-      `[${pkg.name}] non-ES2015 dependencies found, handing off to Browserify`
-    );
-
-    const intermediate = `${cwd}/__intermediate.js`;
-    return bundle
-      .write({
-        dest: intermediate,
-        format: "cjs"
-      })
-      .then(() => {
-        // TODO
-        // return bundleWithBrowserify(pkg, intermediate, moduleName);
-      });
-  } else {
-    const { code } = await bundle.generate({
-      format: "umd",
-      moduleName
-    });
-
-    return code;
   }
 }
 

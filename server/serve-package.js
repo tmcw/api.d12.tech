@@ -128,6 +128,7 @@ function fetchBundle(pkg, version, deep, query) {
     inProgress[hash] = createBundle(hash, pkg, version, deep, query)
       .then(
         result => {
+          console.log(result);
           const zipped = zlib.gzipSync(result);
           cache.set(hash, zipped);
           return zipped;

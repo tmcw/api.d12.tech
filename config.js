@@ -30,7 +30,7 @@ if (process.env.AWS) {
     "X-Content-Type-Options": "nosniff",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Request-Method": "GET",
-    "X-Powered-By": "https://github.com/rich-harris/packd",
+    "X-Powered-By": "https://github.com/tmcw/d11n-server",
     "Strict-Transport-Security": `max-age=${cacheExpiration}; includeSubDomains; preload`
   };
 
