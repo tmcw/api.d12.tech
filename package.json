@@ -1,5 +1,5 @@
 {
-  "name": "packd",
+  "name": "d11n-server",
   "version": "2.6.8",
   "description": "Simple alternative to browserify-cdn",
   "scripts": {
