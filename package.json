@@ -1,5 +1,5 @@
 {
-  "name": "d11n-server",
+  "name": "d12-server",
   "version": "2.6.8",
   "description": "Simple alternative to browserify-cdn",
   "scripts": {
