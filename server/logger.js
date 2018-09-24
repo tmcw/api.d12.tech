@@ -1,9 +1,8 @@
-const fs = require("fs");
-const minilog = require("minilog");
-
-const { tmpdir } = require("../config.js");
-
-minilog.enable();
-minilog.pipe(fs.createWriteStream(`${tmpdir}/log`));
-
-module.exports = minilog("packd");
+module.exports = {
+  log(msg) {
+    console.log(`${(new Date()).toISOString()} ${msg}`);
+  }
+  info(msg) {
+    console.log(`${(new Date()).toISOString()} ${msg}`);
+  }
+};

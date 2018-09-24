@@ -31,7 +31,6 @@
     "express": "^4.15.2",
     "got": "^9.2.2",
     "lru-cache": "^4.0.2",
-    "minilog": "^3.1.0",
     "npm": "^5.3.0",
     "pretty-bytes": "^4.0.2",
     "sander": "^0.6.0",
