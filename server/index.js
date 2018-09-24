@@ -6,7 +6,6 @@ const favicon = require("serve-favicon");
 const pkgInfo = require("../package.json");
 const padRight = require("./utils/padRight.js");
 const servePackage = require("./serve-package.js");
-const logger = require("./logger.js");
 const cache = require("./cache.js");
 
 const { debugEndpoints, root, tmpdir } = require("../config.js");
@@ -99,7 +98,7 @@ app.use((req, res, next) => {
   const url = req.originalUrl || req.url;
   const httpVersion = req.httpVersionMajor + "." + req.httpVersionMinor;
 
-  logger.info(
+  console.info(
     `${remoteAddr} - - [${date}] "${req.method} ${url} HTTP/${httpVersion}"`
   );
   next();
@@ -135,7 +134,7 @@ app.get("/", (req, res) => {
 app.use(servePackage);
 
 app.listen(port, () => {
-  logger.log(`started at ${new Date().toUTCString()}`);
+  console.log(`started at ${new Date().toUTCString()}`);
   console.log("listening on localhost:" + port);
   if (process.send) process.send("start");
 });
