@@ -1,7 +1,6 @@
 const fs = require("fs");
 const readline = require("readline");
 const express = require("express");
-const compression = require("compression");
 const prettyBytes = require("pretty-bytes");
 const favicon = require("serve-favicon");
 const pkgInfo = require("../package.json");
@@ -16,7 +15,6 @@ const app = express();
 const port = process.env.PORT || 9000;
 
 app.use(favicon(`${root}/public/favicon.ico`));
-app.use(compression());
 
 if (debugEndpoints === true) {
   app.get("/_log", (req, res) => {

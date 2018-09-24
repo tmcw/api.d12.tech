@@ -23,20 +23,17 @@
   },
   "homepage": "https://github.com/Rich-Harris/packd#readme",
   "dependencies": {
-    "compression": "^1.7.0",
     "d11n": "0.0.1-0",
     "etag": "^1.8.0",
     "express": "^4.15.2",
+    "got": "^9.2.2",
     "lru-cache": "^4.0.2",
     "minilog": "^3.1.0",
     "npm": "^5.3.0",
     "pretty-bytes": "^4.0.2",
-    "request": "^2.81.0",
-    "request-promise": "^4.2.1",
     "sander": "^0.6.0",
     "semver": "^5.3.0",
     "serve-favicon": "^2.4.2",
-    "sha1": "^1.1.1",
     "tar": "^3.2.1"
   },
   "devDependencies": {

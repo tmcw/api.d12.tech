@@ -7,7 +7,7 @@ const findVersion = require("./utils/findVersion.js");
 const logger = require("./logger.js");
 const cache = require("./cache.js");
 const etag = require("etag");
-const sha1 = require("sha1");
+const crypto = require("crypto");
 
 const { sendBadRequest, sendError } = require("./utils/responses.js");
 const { root, registry, additionalBundleResHeaders } = require("../config.js");
@@ -113,7 +113,10 @@ function fetchBundle(pkg, version, deep, query) {
 
   logger.info(`[${pkg.name}] requested package`);
 
-  hash = sha1(hash);
+  hash = crypto
+    .createHash("sha1")
+    .update(hash)
+    .digest("hex");
 
   if (cache.has(hash)) {
     logger.info(`[${pkg.name}] is cached`);

@@ -2,12 +2,8 @@ const path = require("path");
 const sander = require("sander");
 const child_process = require("child_process");
 const tar = require("tar");
-const request = require("request");
-const rollup = require("rollup");
-const resolve = require("rollup-plugin-node-resolve");
-const UglifyJS = require("uglify-js");
+const got = require("got");
 const d11n = require("d11n");
-const makeLegalIdentifier = require("../utils/makeLegalIdentifier");
 
 const { npmInstallEnvVars, root, tmpdir } = require("../../config.js");
 
@@ -59,7 +55,7 @@ function fetchAndExtract(pkg, version, dir) {
       timedout = true;
     }, 10000);
 
-    const input = request(tarUrl);
+    const input = got(tarUrl, { stream: true });
 
     // don't like going via the filesystem, but piping into targz
     // was failing for some weird reason
@@ -120,7 +116,6 @@ function installDependencies(cwd) {
 
 function bundle(cwd, deep, query) {
   const pkg = require(`${cwd}/package.json`);
-  const moduleName = query.name || makeLegalIdentifier(pkg.name);
 
   const entry = deep
     ? path.resolve(cwd, deep)
