@@ -27,32 +27,19 @@
     "d11n": "0.0.1-0",
     "etag": "^1.8.0",
     "express": "^4.15.2",
-    "is-module": "^1.0.0",
     "lru-cache": "^4.0.2",
     "minilog": "^3.1.0",
     "npm": "^5.3.0",
     "pretty-bytes": "^4.0.2",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
-    "rollup": "^0.45.2",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-uglify": "^2.0.1",
     "sander": "^0.6.0",
     "semver": "^5.3.0",
     "serve-favicon": "^2.4.2",
     "sha1": "^1.1.1",
-    "tar": "^3.2.1",
-    "uglify-js": "^3.0.25"
+    "tar": "^3.2.1"
   },
   "devDependencies": {
     "prettier": "^1.14.3"
-  },
-  "now": {
-    "alias": "packd",
-    "files": [
-      "public",
-      "server",
-      "config.js"
-    ]
   }
 }
