@@ -4,7 +4,7 @@
   "description": "Simple alternative to browserify-cdn",
   "scripts": {
     "dev": "micro-dev server -p 3024",
-    "start": "micro server -p 3024",
+    "start": "micro server",
     "deploy": "now && now alias",
     "test": "node test/test.js",
     "postpublish": "npm run deploy"
