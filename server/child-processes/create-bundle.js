@@ -3,7 +3,7 @@ const sander = require("sander");
 const child_process = require("child_process");
 const tar = require("tar");
 const got = require("got");
-const d12 = require("d12");
+const d12 = require("@tmcw/d12");
 
 const { npmInstallEnvVars, root, tmpdir } = require("../../config.js");
 

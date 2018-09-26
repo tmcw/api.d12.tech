@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/Rich-Harris/packd#readme",
   "dependencies": {
+    "@tmcw/d12": "0.0.1-1",
     "d11n": "0.0.1-0",
     "got": "^9.2.2",
     "lru-cache": "^4.0.2",

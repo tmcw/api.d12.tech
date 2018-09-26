@@ -14,6 +14,20 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
+"@tmcw/d12@0.0.1-1":
+  version "0.0.1-1"
+  resolved "https://registry.yarnpkg.com/@tmcw/d12/-/d12-0.0.1-1.tgz#96e39ed82f350972ea48639ea18f1d3c260caca0"
+  dependencies:
+    acorn "^6.0.1"
+    acorn-walk "^6.0.1"
+    escodegen "^1.11.0"
+    magic-string "^0.25.1"
+    rollup "^0.66.2"
+    rollup-plugin-commonjs "^9.1.8"
+    rollup-plugin-node-resolve "^3.4.0"
+    rollup-pluginutils "^2.3.3"
+    standard-version "^4.4.0"
+
 "@types/estree@0.0.39":
   version "0.0.39"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
