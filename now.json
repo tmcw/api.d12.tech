@@ -1,10 +1,4 @@
 {
   "name": "d12-api",
-  "alias": "api.d12.tech",
-  "scale": {
-    "sfo1": {
-      "min": 1,
-      "max": "auto"
-    }
-  }
+  "alias": "api.d12.tech"
 }
