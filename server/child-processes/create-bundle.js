@@ -3,7 +3,7 @@ const sander = require("sander");
 const child_process = require("child_process");
 const tar = require("tar");
 const got = require("got");
-const d11n = require("d11n");
+const d12 = require("d12");
 
 const { npmInstallEnvVars, root, tmpdir } = require("../../config.js");
 
@@ -29,7 +29,7 @@ async function createBundle({ hash, pkg, version, deep, query }) {
 
     process.send({
       type: "result",
-      code: JSON.stringify(Array.from(docs.entries()))
+      docs: JSON.stringify(docs)
     });
   } catch (err) {
     process.send({
@@ -113,7 +113,7 @@ async function installDependencies(cwd) {
   }, Promise.resolve());
 }
 
-function bundle(cwd, deep, query) {
+async function bundle(cwd, deep, query) {
   const pkg = require(`${cwd}/package.json`);
 
   const entry = deep
@@ -129,7 +129,11 @@ function bundle(cwd, deep, query) {
         )
       );
 
-  return d11n(path.resolve(cwd, entry));
+  const docs = await d12(path.resolve(cwd, entry));
+  return {
+    meta: pkg,
+    entries: Array.from(docs.entries())
+  };
 }
 
 function findEntry(file) {

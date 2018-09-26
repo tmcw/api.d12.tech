@@ -135,7 +135,7 @@ function createBundle(hash, pkg, version, deep, query) {
         reject(error);
         child.kill();
       } else if (message.type === "result") {
-        fulfil(message.code);
+        fulfil(message.docs);
         child.kill();
       }
     });
