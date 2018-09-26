@@ -14,9 +14,9 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@tmcw/d12@0.0.1-1":
-  version "0.0.1-1"
-  resolved "https://registry.yarnpkg.com/@tmcw/d12/-/d12-0.0.1-1.tgz#96e39ed82f350972ea48639ea18f1d3c260caca0"
+"@tmcw/d12@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@tmcw/d12/-/d12-0.0.1.tgz#45590f9585cec46cbcb654899826ae815b080949"
   dependencies:
     acorn "^6.0.1"
     acorn-walk "^6.0.1"
@@ -26,7 +26,6 @@
     rollup-plugin-commonjs "^9.1.8"
     rollup-plugin-node-resolve "^3.4.0"
     rollup-pluginutils "^2.3.3"
-    standard-version "^4.4.0"
 
 "@types/estree@0.0.39":
   version "0.0.39"
