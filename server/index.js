@@ -11,15 +11,15 @@ const crypto = require("crypto");
 const { sendBadRequest, sendError } = require("./utils/responses.js");
 const { root, registry, additionalBundleResHeaders } = require("../config.js");
 
-module.exports = async function servePackage(req) {
+module.exports = async function servePackage(req, res) {
   if (req.method !== "GET") return next();
 
-  const { path } = url.parse(req.url);
+  const { pathname, query } = url.parse(req.url, true);
 
-  if (path === "/favicon.ico") return;
+  if (pathname === "/favicon.ico") return;
 
   const match = /^\/(?:@([^\/]+)\/)?([^@\/]+)(?:@(.+?))?(?:\/(.+?))?(?:\?(.+))?$/.exec(
-    req.url
+    pathname
   );
 
   if (!match) {
@@ -31,16 +31,8 @@ module.exports = async function servePackage(req) {
   const id = match[2];
   const tag = match[3] || "latest";
   const deep = match[4];
-  const queryString = match[5];
 
   const qualified = user ? `@${user}/${id}` : id;
-  const query = (queryString || "").split("&").reduce((query, pair) => {
-    if (!pair) return query;
-
-    const [key, value] = pair.split("=");
-    query[key] = value || true;
-    return query;
-  }, {});
 
   const meta = JSON.parse(
     await get(
@@ -50,6 +42,18 @@ module.exports = async function servePackage(req) {
   if (!meta.versions) {
     console.error(`[${qualified}] invalid module`);
     throw new Error("invalid module");
+  }
+
+  if (query.meta !== undefined) {
+    const { name, license, author, description, homepage, versions } = meta;
+    return {
+      name,
+      author,
+      license,
+      description,
+      homepage,
+      versions: Object.keys(versions)
+    };
   }
 
   const version = findVersion(meta, tag);
@@ -63,7 +67,10 @@ module.exports = async function servePackage(req) {
     let url = `/${meta.name}@${version}`;
     if (deep) url += `/${deep}`;
     url += "?" + stringify(query);
-    res.redirect(302, url);
+    res.writeHead(302, {
+      Location: url
+    });
+    res.end();
     return;
   }
 
